@@ -9,7 +9,6 @@ import os
 from cv2 import cv2
 import sys
 import time
-sys.path.append(os.getcwd())
 
 import torch
 import argparse
@@ -18,9 +17,11 @@ import pickle
 from tqdm import tqdm
 
 from data import *
-from config import pb,voc# ,crack,coco,trafic
+from config import pb, voc
 from data import PB_Classes as labelmap
 from model_ssd import build_ssd
+
+sys.path.append(os.getcwd())
 
 
 def str2bool(v):
@@ -29,9 +30,12 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Evaluation')
-parser.add_argument('--testset_filename',default='/home/yangzw/Pytorch/data/PB/sub_test_core_coreless.txt',type=str) # 测试图片名的txt文档
-parser.add_argument('--image_path',default='/home/yangzw/Pytorch/data/PB/coreless_5000/Image/',type=str) # 图片文件夹
-parser.add_argument('--anno_path',default='/home/yangzw/Pytorch/data/PB/coreless_5000/Annotation/',type=str) # 标准文件夹
+parser.add_argument('--testset_filename', default='/home/yangzw/Pytorch/data/PB/sub_test_core_coreless.txt',
+                    type=str, help='image names in test set(.txt file)')  # 测试图片名的txt文档
+parser.add_argument('--image_path', default='/home/yangzw/Pytorch/data/PB/coreless_5000/Image/',
+                    type=str, help='Path of images')  # 图片文件夹
+parser.add_argument('--anno_path', default='/home/yangzw/Pytorch/data/PB/coreless_5000/Annotation/',
+                    type=str, help='Path of annotation files')  # 标注文件夹
 parser.add_argument('--trained_model',
                     default='weights/ssd495_.pth', type=str,
                     help='Trained state_dict file path to open')
@@ -51,10 +55,9 @@ if not os.path.exists(args.save_folder):
     os.mkdir(args.save_folder)
 
 
-
-
 class Timer(object):
     """A simple timer."""
+
     def __init__(self):
         self.total_time = 0.
         self.calls = 0
@@ -78,7 +81,7 @@ class Timer(object):
             return self.diff
 
 
-def parse_rec(filename,width,height):
+def parse_rec(filename, width, height):
     """ Parse a Powerbank Annotation txt file """
     objects = []
     with open(filename, "r", encoding='utf-8') as f1:
@@ -98,7 +101,7 @@ def parse_rec(filename,width,height):
             if ymin < 0:
                 ymin = 1
             xmax = int(temp[4])
-            if xmax > width: 
+            if xmax > width:
                 xmax = width - 1
             ymax = int(temp[5])
             if ymax > height:
@@ -129,8 +132,8 @@ def get_output_dir(name, phase):
     return filedir
 
 
-def get_voc_results_file_template(data_dir,image_set, cls):
-    filename='result'+ '_%s.txt' % (cls)
+def get_voc_results_file_template(data_dir, image_set, cls):
+    filename = 'result' + '_%s.txt' % (cls)
     filedir = os.path.join(data_dir, 'results')
     if not os.path.exists(filedir):
         os.makedirs(filedir)
@@ -138,10 +141,10 @@ def get_voc_results_file_template(data_dir,image_set, cls):
     return path
 
 
-def write_voc_results_file(data_dir,all_boxes, dataset ,set_type):
+def write_voc_results_file(data_dir, all_boxes, dataset, set_type):
     for cls_ind, cls in enumerate(labelmap):
         #get any class to store the result
-        filename = get_voc_results_file_template(data_dir,set_type, cls)
+        filename = get_voc_results_file_template(data_dir, set_type, cls)
         with open(filename, 'wt') as f:
             for im_ind, index in enumerate(dataset.ids):
                 dets = all_boxes[cls_ind+1][im_ind]
@@ -154,22 +157,23 @@ def write_voc_results_file(data_dir,all_boxes, dataset ,set_type):
                                    dets[k, 2] + 1, dets[k, 3] + 1))
 
 
-def do_python_eval(output_dir, set_type,use_07=True):
+def do_python_eval(output_dir, set_type, use_07=True):
     cachedir = os.path.join(output_dir, 'annotations_cache')
-    imgsetpath=args.testset_filename
-    imgspath=args.image_path
+    imgsetpath = args.testset_filename
+    imgspath = args.image_path
     annopath = args.anno_path
     if not os.path.isdir(cachedir):
         os.mkdir(cachedir)
     aps = []
     # TODO The PASCAL VOC metric changed in 2010 ?
     use_07_metric = use_07
-    
+
     for i, cls in enumerate(labelmap):
-        filename = get_voc_results_file_template(output_dir,set_type, cls)
+        filename = get_voc_results_file_template(output_dir, set_type, cls)
         rec, prec, ap = voc_eval(
-           filename, annopath,imgspath, imgsetpath.format(set_type), cls, cachedir,
-           ovthresh=args.over_thresh, use_07_metric=use_07_metric)
+            filename, annopath, imgspath, imgsetpath.format(
+                set_type), cls, cachedir,
+            ovthresh=args.over_thresh, use_07_metric=use_07_metric)
         aps += [ap]
         print('AP for {} = {:.4f}'.format(cls, ap))
 
@@ -186,6 +190,7 @@ def do_python_eval(output_dir, set_type,use_07=True):
     print('Results should be very close to the official MATLAB eval code.')
     print('--------------------------------------------------------------')
     return np.mean(aps)
+
 
 def voc_ap(rec, prec, use_07_metric=True):
     """ ap = voc_ap(rec, prec, [use_07_metric])
@@ -252,7 +257,8 @@ cachedir: Directory for caching the annotations
 # assumes imagesetfile is a text file with each line an image name
 # cachedir caches the annotations in a pickle file
 # first load gt
-    cachefile = os.path.join(cachedir, args.testset_filename.split('/')[-1].split('.')[0],'annots.pkl')
+    cachefile = os.path.join(cachedir, args.testset_filename.split(
+        '/')[-1].split('.')[0], 'annots.pkl')
     # read list of images
     with open(imagesetfile, 'r') as f:
         lines = f.readlines()
@@ -263,11 +269,11 @@ cachedir: Directory for caching the annotations
         #load annots
         recs = {}
         for i, imagename in enumerate(imagenames):
-            filename=os.path.join(annopath,imagename+'.txt')
-            imgpath=os.path.join(imgspath,imagename+'.jpg')
+            filename = os.path.join(annopath, imagename+'.txt')
+            imgpath = os.path.join(imgspath, imagename+'.jpg')
             img = cv2.imread(imgpath)
             height, width, channels = img.shape
-            recs[imagename] = parse_rec(filename,width,height)
+            recs[imagename] = parse_rec(filename, width, height)
 
         # 保存testset中所有图片标注信息，方便下次使用
         print('Saving cached annotations to {:s}'.format(cachefile))
@@ -282,7 +288,7 @@ cachedir: Directory for caching the annotations
     class_recs = {}
     npos = 0
     for imagename in imagenames:
-        
+
         R = [obj for obj in recs[imagename] if obj['name'] == classname]
         bbox = np.array([x['bbox'] for x in R])
         difficult = np.array([x['difficult'] for x in R]).astype(np.bool)
@@ -362,23 +368,22 @@ cachedir: Directory for caching the annotations
     return rec, prec, ap
 
 
-def test_net(save_folder, net, cuda, dataset, top_k,im_size=300, thresh=0.05):
+def test_net(save_folder, net, cuda, dataset, top_k, im_size=300, thresh=0.05):
     num_images = len(dataset)
     all_boxes = [[[] for _ in range(num_images)]
                  for _ in range(len(labelmap)+1)]
     # timers
     _t = {'im_detect': Timer(), 'misc': Timer()}
-    # print(num_images)
     for i in tqdm(range(num_images)):
         with torch.no_grad():
             im, gt, h, w = dataset.pull_item(i)
-            img_id,annotation=dataset.pull_anno(i)
-            name=img_id.split('/')[-1].split('.')[0]
+            img_id, annotation = dataset.pull_anno(i)
+            name = img_id.split('/')[-1].split('.')[0]
             x = im.unsqueeze(0)
             if args.cuda:
                 x = x.cuda()
             _t['im_detect'].tic()
-            detections = net(x,'test').data
+            detections = net(x, 'test').data
             detect_time = _t['im_detect'].toc(average=False)
 
             # skip j = 0, because it's the background class
@@ -400,10 +405,11 @@ def test_net(save_folder, net, cuda, dataset, top_k,im_size=300, thresh=0.05):
                 all_boxes[j][i] = cls_dets
     return all_boxes
 
-def evaluate_detections(data_dir,box_list,dataset,eval_type = 'test'):
+
+def evaluate_detections(data_dir, box_list, dataset, eval_type='test'):
     #write the det result to dir
-    write_voc_results_file(data_dir,box_list, dataset, eval_type)
-    return do_python_eval(data_dir,eval_type)
+    write_voc_results_file(data_dir, box_list, dataset, eval_type)
+    return do_python_eval(data_dir, eval_type)
 
 
 if __name__ == '__main__':
@@ -417,26 +423,28 @@ if __name__ == '__main__':
     else:
         torch.set_default_tensor_type('torch.FloatTensor')
     num_classes = len(labelmap) + 1                      # +1 for background
-    net = build_ssd('test', size = 300, cfg = pb)            # initialize SSD
+    net = build_ssd('test', size=300, cfg=pb)            # initialize SSD
     net.load_state_dict(torch.load(args.trained_model))
-    
-    print('Finished loading model : {}!'.format(args.trained_model.split('/')[-1]))
+
+    print('Finished loading model : {}!'.format(
+        args.trained_model.split('/')[-1]))
     # load data
     # dataset = PBDetection(test=True,args.voc_root, ['coreless_5000', 'core_500'],
     #                        BaseTransform(300, voc['mean'],voc['std']))
-    dataset=PBDetection(image_path=args.image_path,anno_path=args.anno_path,transform=BaseTransform(300, pb['mean'],pb['std']))
+    dataset = PBDetection(image_path=args.image_path, anno_path=args.anno_path,
+                          transform=BaseTransform(300, pb['mean'], pb['std']))
     if args.cuda:
         net = net.cuda()
         #torch.backends.cudnn.benchmark = True
     net.eval()
-        
+
     # evaluation
-    cache_dir=args.save_folder
+    cache_dir = args.save_folder
     if not os.path.exists(cache_dir):
         os.mkdir(cache_dir)
 
-    all_boxes = test_net(args.save_folder, net, args.cuda, dataset,args.top_k, 300,
-             thresh=args.confidence_threshold)
-    
+    all_boxes = test_net(args.save_folder, net, args.cuda, dataset, args.top_k, 300,
+                         thresh=args.confidence_threshold)
+
     print('Evaluating detections')
-    result = evaluate_detections(cache_dir,all_boxes, dataset,'test')
+    result = evaluate_detections(cache_dir, all_boxes, dataset, 'test')

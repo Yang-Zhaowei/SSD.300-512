@@ -1,7 +1,8 @@
+import sys
 
 import torch.nn as nn
 import torch.nn.functional as F
-import sys
+
 from .utils import ConvModule
 
 

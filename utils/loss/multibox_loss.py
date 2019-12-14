@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from ..box import match, log_sum_exp
-from ..box import match_ious, bbox_overlaps_iou, bbox_overlaps_giou, bbox_overlaps_diou, bbox_overlaps_ciou, decode
+from ..box import match_ious, bbox_overlaps_iou, bbox_overlaps_giou, bbox_overlaps_ciou, decode
 
 
 class IouLoss(nn.Module):
@@ -28,10 +28,7 @@ class IouLoss(nn.Module):
             if self.loss == 'Giou':
                 loss = torch.sum(1.0 - bbox_overlaps_giou(decoded_boxes,loc_t))
             else:
-                if self.loss == 'Diou':
-                    loss = torch.sum(1.0 - bbox_overlaps_diou(decoded_boxes,loc_t))
-                else:
-                    loss = torch.sum(1.0 - bbox_overlaps_ciou(decoded_boxes, loc_t))            
+                loss = torch.sum(1.0 - bbox_overlaps_ciou(decoded_boxes, loc_t))            
      
         if self.size_sum:
             loss = loss

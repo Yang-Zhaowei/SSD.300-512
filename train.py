@@ -1,18 +1,22 @@
-from config import pb
-from tqdm import tqdm
+import time
 import argparse
+import os
+import sys
+import json
+
+from tqdm import tqdm
 import torch.utils.data as data
 import torch.nn.init as init
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.nn as nn
 import torch
-import time
+
+from config import pb
 from utils import MultiBoxLoss
 from data import *
 from model_ssd import build_ssd
-import os
-import sys
+
 sys.path.append(os.getcwd())
 
 
@@ -109,7 +113,7 @@ def train():
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum,
                           weight_decay=args.weight_decay)
 
-    #loss:SmoothL1\Iou\Giou\Diou\Ciou
+    #loss
     # print(cfg['losstype'])
     criterion = MultiBoxLoss(cfg=cfg, overlap_thresh=0.5,
                              prior_for_matching=True, bkg_label=0,
@@ -125,6 +129,7 @@ def train():
     save_folder = args.work_dir+cfg['work_name']
     if not os.path.exists(save_folder):
         os.mkdir(save_folder)
+    Lossc,Lossl,Loss=[],[],[]
     for epoch in range(args.max_epoch):
         for ii, batch_iterator in tqdm(enumerate(data_loader)):
             iteration += 1
@@ -154,10 +159,12 @@ def train():
             conf_loss += loss_c.item()
             #print(iteration)
             if iteration % 10 == 0:
-                print('timer: %.4f sec.' % (t1 - t0))
-                print('iter ' + repr(iteration) + ' || Loss: %.4f ||' %
-                      (loss.item()), end=' ')
-
+                print('timer: {:.4f} sec.' .format(t1 - t0))
+                print('iter {} Loss: {:.4f} '.format(repr(iteration),loss.item()), end=' ')
+                Loss.append(loss.item())
+        
+        Lossc.append(loc_loss)
+        Lossl.append(conf_loss)
         if epoch % 10 == 0 and epoch > 60:  # epoch>1000 and epoch % 50 == 0:
             print('Saving state, iter:', iteration)
             #print('loss_l:'+weight * loss_l+', loss_c:'+'loss_c')
@@ -169,6 +176,12 @@ def train():
         conf_loss = 0
     torch.save(net.state_dict(), save_folder+'/ssd' +
                repr(epoch) + str(args.weight) + '_.pth')
+    with open(save_folder+'/lossc.json','w+',encoding='utf-8') as obj:
+        json.dump(Lossc,obj,ensure_ascii=False)
+    with open(save_folder+'/lossl.json','w+',encoding='utf-8') as obj:
+        json.dump(Lossl,obj,ensure_ascii=False)
+    with open(save_folder+'/loss.json','w+',encoding='utf-8') as obj:
+        json.dump(Loss,obj,ensure_ascii=False)
 
 
 def adjust_learning_rate(optimizer, gamma, step):
