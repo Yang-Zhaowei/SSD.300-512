@@ -17,8 +17,8 @@ import pickle
 from tqdm import tqdm
 
 from data import *
-from config import pb, voc
-from data import PB_Classes as labelmap
+from data import PB_CLASSES as labelmap
+from config import pb
 from model_ssd import build_ssd
 
 sys.path.append(os.getcwd())
@@ -30,14 +30,14 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Evaluation')
-parser.add_argument('--testset_filename', default='/home/yangzw/Pytorch/data/PB/sub_test_core_coreless.txt',
+parser.add_argument('--testset_filename', default='/sub_test_core_coreless.txt',
                     type=str, help='image names in test set(.txt file)')  # 测试图片名的txt文档
-parser.add_argument('--image_path', default='/home/yangzw/Pytorch/data/PB/coreless_5000/Image/',
+parser.add_argument('--image_path', default='/home/yangzw/Pytorch/data/core_3000/Image/',
                     type=str, help='Path of images')  # 图片文件夹
-parser.add_argument('--anno_path', default='/home/yangzw/Pytorch/data/PB/coreless_5000/Annotation/',
+parser.add_argument('--anno_path', default='/home/yangzw/Pytorch/data/core_3000/Annotation/',
                     type=str, help='Path of annotation files')  # 标注文件夹
 parser.add_argument('--trained_model',
-                    default='weights/ssd495_.pth', type=str,
+                    default='weights/ssd995.pth', type=str,
                     help='Trained state_dict file path to open')
 parser.add_argument('--save_folder', default='eval/', type=str,
                     help='File path to save results')

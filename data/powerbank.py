@@ -7,7 +7,7 @@ import torch.utils.data as data
 from cv2 import cv2
 import numpy as np
 
-PB_Classes=['带电芯充电宝','不带电芯充电宝'] # always index 2
+PB_CLASSES=['带电芯充电宝','不带电芯充电宝'] # always index 2
 PB_ROOT=""
 
 class PBAnnotationTransform(object):
@@ -19,7 +19,7 @@ class PBAnnotationTransform(object):
     width
     """
     def __init__(self,class_to_ind=None,test=False):
-        self.class_to_ind=class_to_ind or dict(zip(PB_Classes,range(len(PB_Classes))))
+        self.class_to_ind=class_to_ind or dict(zip(PB_CLASSES,range(len(PB_CLASSES))))
         self.test=test
 
     def __call__(self,target,width,height,test):

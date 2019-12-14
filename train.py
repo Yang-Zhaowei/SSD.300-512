@@ -131,6 +131,7 @@ def train():
         os.mkdir(save_folder)
     Lossc,Lossl,Loss=[],[],[]
     for epoch in range(args.max_epoch):
+        print('\nEpoch : {:0>3d}'.format(epoch+1))
         for ii, batch_iterator in tqdm(enumerate(data_loader)):
             iteration += 1
 
@@ -170,12 +171,12 @@ def train():
             #print('loss_l:'+weight * loss_l+', loss_c:'+'loss_c')
 
             torch.save(net.state_dict(), save_folder+'/ssd' +
-                       repr(epoch)+'_.pth')
+                       repr(epoch)+'.pth')
 
         loc_loss = 0
         conf_loss = 0
     torch.save(net.state_dict(), save_folder+'/ssd' +
-               repr(epoch) + str(args.weight) + '_.pth')
+               repr(epoch) + str(args.weight) + '.pth')
     with open(save_folder+'/lossc.json','w+',encoding='utf-8') as obj:
         json.dump(Lossc,obj,ensure_ascii=False)
     with open(save_folder+'/lossl.json','w+',encoding='utf-8') as obj:
