@@ -25,7 +25,7 @@ pb= {
     'aspect_ratios': [[2], [2, 3], [2, 3], [2, 3], [2], [2]],
     'variance': [0.1, 0.2],
     'clip': True,
-    'nms_kind': "diounms",
+    'nms_kind': "nms",
     'beta1':1.0,
     'name': 'PB',
     'work_name':"SSD300_PB",

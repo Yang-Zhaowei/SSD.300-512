@@ -77,9 +77,8 @@ class PBDetection(data.Dataset):
             (default: 'VOC2007')
     """
 
-    def __init__(self,test=False,ratio=1,root=PB_ROOT,
-                 image_path='data/Powerbank',#image_sest=['coreless_5000', 'core_500'],  
-                 anno_path='data/Annotation',
+    def __init__(self,image_path='data/Powerbank',#image_sest=['coreless_5000', 'core_500'],  
+                 anno_path='data/Annotation',test=False,ratio=1,root=PB_ROOT,
                  transform=None, target_transform=PBAnnotationTransform(),):
         self.root = root
         # self.image_set = image_sets
@@ -104,9 +103,9 @@ class PBDetection(data.Dataset):
         #     else:
         #         self.ids.extend(osp.join(ipath,img) for img in imgs[:int(num*ratio)])
 
-            # with open("/home/peng/Public/SSD/sub_test_core_coreless.txt",'w+',encoding='utf-8') as obj:
-            #     for kkk in self.ids:
-            #         obj.write("{}\n".format(kkk.split('/')[-1].split('.')[0]))
+        # with open("sub_test_core_coreless.txt2",'w+',encoding='utf-8') as obj:
+        #     for kkk in self.ids:
+        #         obj.write("{}\n".format(kkk.split('/')[-1].split('.')[0]))
            
 
     def __getitem__(self, index):
@@ -210,3 +209,7 @@ def detection_collate(batch):
         targets.append(torch.FloatTensor(sample[1]))
     return torch.stack(imgs, 0), targets
 
+
+if __name__=='__main__':
+    datas=PBDetection(image_path='/home/yangzw/Pytorch/data/coreless_3000/Image/',anno_path='/home/yangzw/Pytorch/data/coreless_3000/Annotation/')
+    print(len(datas))
