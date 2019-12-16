@@ -37,7 +37,7 @@ parser.add_argument('--dataset', default='PB',
                     type=str, help='Dataset, only powerbank')
 parser.add_argument('--batch_size', default=36, type=int,
                     help='Batch size for training')
-parser.add_argument('--max_epoch', default=50, type=int,
+parser.add_argument('--max_epoch', default=300, type=int,
                     help='Max Epoch for training')
 parser.add_argument('--resume', default="work_dir/ssd495.pth", type=str,
                     help='Checkpoint state_dict file to resume training from')

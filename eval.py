@@ -30,14 +30,14 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Evaluation')
-parser.add_argument('--testset_filename', default='/sub_test_core_coreless.txt',
+parser.add_argument('--testset_filename', default='sub_test_core_coreless.txt',
                     type=str, help='image names in test set(.txt file)')  # 测试图片名的txt文档
 parser.add_argument('--image_path', default='/home/yangzw/Pytorch/data/core_3000/Image/',
                     type=str, help='Path of images')  # 图片文件夹
 parser.add_argument('--anno_path', default='/home/yangzw/Pytorch/data/core_3000/Annotation/',
                     type=str, help='Path of annotation files')  # 标注文件夹
 parser.add_argument('--trained_model',
-                    default='weights/ssd995.pth', type=str,
+                    default='weights/ssd994.pth', type=str,
                     help='Trained state_dict file path to open')
 parser.add_argument('--save_folder', default='eval/', type=str,
                     help='File path to save results')
@@ -258,7 +258,7 @@ cachedir: Directory for caching the annotations
 # cachedir caches the annotations in a pickle file
 # first load gt
     cachefile = os.path.join(cachedir, args.testset_filename.split(
-        '/')[-1].split('.')[0], 'annots.pkl')
+        '/')[-1].split('.')[0]+'annots.pkl')
     # read list of images
     with open(imagesetfile, 'r') as f:
         lines = f.readlines()
@@ -448,3 +448,17 @@ if __name__ == '__main__':
 
     print('Evaluating detections')
     result = evaluate_detections(cache_dir, all_boxes, dataset, 'test')
+
+"""
+151
+ssd994:
+AP for 带电芯充电宝 = 0.7238
+AP for 不带电芯充电宝 = 0.8922
+Mean AP = 0.8080
+~~~~~~~~
+Results:
+0.724
+0.892
+0.808
+~~~~~~~~
+"""
