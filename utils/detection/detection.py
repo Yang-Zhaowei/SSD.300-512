@@ -1,6 +1,6 @@
 import torch
 from torch.autograd import Function
-from ..box import decode, nms, diounms
+from ..box import decode, nms
 
 
 class Detect(Function):

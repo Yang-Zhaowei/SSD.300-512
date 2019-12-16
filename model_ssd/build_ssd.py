@@ -106,7 +106,7 @@ def build_ssd(phase, size=300, cfg=None):
         print("ERROR: You specified size " + repr(size) + ". However, " +
               "currently only SSD300 (size=300) is supported!")
         return
-    print(phase)
+    # print(phase)
     base = Basenet(cfg['model'],[6,7,8,9,10,11])
     
     neck = Neck(in_channels = cfg['basenet_out'], out_channels = cfg['neck_out'])
