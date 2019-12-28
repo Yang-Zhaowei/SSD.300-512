@@ -81,6 +81,7 @@ class PBDetection(data.Dataset):
                  anno_path='data/Annotation',test=False,ratio=1,root=PB_ROOT,
                  transform=None, target_transform=PBAnnotationTransform(),):
         self.root = root
+        self.name='PowerBank'
         # self.image_set = image_sets
         self.transform = transform
         self.target_transform = target_transform

@@ -136,7 +136,10 @@ class MultiBoxLoss(nn.Module):
             loss_l = F.smooth_l1_loss(loc_p, loc_t, reduction='sum')
         else:
             giou_priors = priors.data.unsqueeze(0).expand_as(loc_data)
-            loss_l = self.gious(loc_p,loc_t,giou_priors[pos_idx].view(-1, 4))
+            if self.loss == 'IOU':
+                loss_l = self.gious(loc_p,loc_t,giou_priors[pos_idx].view(-1, 4))
+            else:
+                loss_l = self.gious(loc_p,loc_t,giou_priors[pos_idx].view(-1, 4))
         # Compute max conf across batch for hard negative mining
         batch_conf = conf_data.view(-1, self.num_classes)
         loss_c = log_sum_exp(batch_conf) - batch_conf.gather(1, conf_t.view(-1, 1))
