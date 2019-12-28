@@ -5,13 +5,12 @@ Detect and distinguish different types of mobile power by SSD which based Resnet
 
 Loss: GIOU & Cross Entrop
 
-#### Epoch 100:
+#### 7 layers
 | AP |core/coreless_5500|core_3000|coreless_3000|
 |:--:|:----------------:| :-----: | :---------: |
-|core|0.861|0.836|0.722|
-|coreless|0.896|0.566|0.895|
-|map|0.879|0.701|0.834|
-
+|core    |0.9511|0.8569|0.8857|
+|coreless|0.9476|0.5838|0.9438|
+|map     |0.9494|0.7203|0.9147|
 
 #### Epoch 300:
 | AP |core/coreless_5500|core_3000|coreless_3000|
