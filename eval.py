@@ -30,16 +30,16 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Evaluation')
-parser.add_argument('--testset_filename', default='sub_test_core_coreless.txt',
+parser.add_argument('--testset_filename', default='/home/yangzw/test2/sub_test_core_coreless.txt',
                     type=str, help='image names in test set(.txt file)')  # 测试图片名的txt文档
-parser.add_argument('--image_path', default='/home/yangzw/Pytorch/data/core_3000/Image/',
+parser.add_argument('--image_path', default='/home/yangzw/test2/Image_test/',
                     type=str, help='Path of images')  # 图片文件夹
-parser.add_argument('--anno_path', default='/home/yangzw/Pytorch/data/core_3000/Annotation/',
+parser.add_argument('--anno_path', default='/home/yangzw/test2/Anno_test/',
                     type=str, help='Path of annotation files')  # 标注文件夹
 parser.add_argument('--trained_model',
-                    default='weights/ssd994.pth', type=str,
+                    default='weights/ssd795.pth', type=str,
                     help='Trained state_dict file path to open')
-parser.add_argument('--save_folder', default='eval/', type=str,
+parser.add_argument('--save_folder', default='eval6111/', type=str,
                     help='File path to save results')
 parser.add_argument('--confidence_threshold', default=0.01, type=float,
                     help='Detection confidence threshold')
@@ -157,7 +157,7 @@ def write_voc_results_file(data_dir, all_boxes, dataset, set_type):
                                    dets[k, 2] + 1, dets[k, 3] + 1))
 
 
-def do_python_eval(output_dir, set_type, use_07=True):
+def do_python_eval(output_dir, set_type, use_07=False):
     cachedir = os.path.join(output_dir, 'annotations_cache')
     imgsetpath = args.testset_filename
     imgspath = args.image_path
@@ -192,7 +192,7 @@ def do_python_eval(output_dir, set_type, use_07=True):
     return np.mean(aps)
 
 
-def voc_ap(rec, prec, use_07_metric=True):
+def voc_ap(rec, prec, use_07_metric=False):
     """ ap = voc_ap(rec, prec, [use_07_metric])
     Compute VOC AP given precision and recall.
     If use_07_metric is true, uses the
@@ -200,13 +200,14 @@ def voc_ap(rec, prec, use_07_metric=True):
     """
     if use_07_metric:
         # 11 point metric
-        ap = 0.
-        for t in np.arange(0., 1.1, 0.1):
-            if np.sum(rec >= t) == 0:
-                p = 0
-            else:
-                p = np.max(prec[rec >= t])
-            ap = ap + p / 11.
+        # ap = 0.
+        # for t in np.arange(0., 1.1, 0.1):
+        #     if np.sum(rec >= t) == 0:
+        #         p = 0
+        #     else:
+        #         p = np.max(prec[rec >= t])
+        #     ap = ap + p / 11.
+        print('ERROR!!!')
     else:
         # correct AP calculation
         # first append sentinel values at the end
@@ -233,7 +234,7 @@ def voc_eval(detpath,
              classname,
              cachedir,
              ovthresh=0.5,
-             use_07_metric=True):
+             use_07_metric=False):
     """rec, prec, ap = voc_eval(detpath,
                            annopath,
                            imagesetfile,
@@ -302,6 +303,7 @@ cachedir: Directory for caching the annotations
     detfile = detpath.format(classname)
     with open(detfile, 'r') as f:
         lines = f.readlines()
+    num=open('eval{}.txt'.format(args.trained_model.split('/')[-1].rsplit('.',1)[0]),'a+')
     if any(lines) == 1:
 
         splitlines = [x.strip().split(' ') for x in lines]
@@ -313,6 +315,7 @@ cachedir: Directory for caching the annotations
         sorted_ind = np.argsort(-confidence)
         sorted_scores = np.sort(-confidence)
         BB = BB[sorted_ind, :]
+        # name=zip(list(class_recs.keys()),[0 for i in class_recs.keys()])
         image_ids = [image_ids[x] for x in sorted_ind]
 
         # go down dets and mark TPs and FPs
@@ -351,7 +354,13 @@ cachedir: Directory for caching the annotations
                         fp[d] = 1.
             else:
                 fp[d] = 1.
+    
+        for i in class_recs.keys():
+            for j,flag in enumerate(class_recs[i]['det']):
+                if flag==False:
+                    num.write("{} {} {}\n".format(i,class_recs[i]['bbox'][j],classname))
 
+        
         # compute precision recall
         fp = np.cumsum(fp)
         tp = np.cumsum(tp)
@@ -360,6 +369,8 @@ cachedir: Directory for caching the annotations
         # ground truth
         prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
         ap = voc_ap(rec, prec, use_07_metric)
+        num.write("rec:{:.5f}\tprec:{:.5f}\t tp:{}\t fp:{} \t npos:{}\n".format(rec[-1],prec[-1],tp[-1],fp[-1],npos))
+        num.close()
     else:
         rec = -1.
         prec = -1.
@@ -409,7 +420,7 @@ def test_net(save_folder, net, cuda, dataset, top_k, im_size=300, thresh=0.05):
 def evaluate_detections(data_dir, box_list, dataset, eval_type='test'):
     #write the det result to dir
     write_voc_results_file(data_dir, box_list, dataset, eval_type)
-    return do_python_eval(data_dir, eval_type)
+    return do_python_eval(data_dir, eval_type,use_07=False)
 
 
 if __name__ == '__main__':
@@ -461,4 +472,57 @@ Results:
 0.892
 0.808
 ~~~~~~~~
+
+AP for 带电芯充电宝 = 0.4360
+AP for 不带电芯充电宝 = 0.9401
+Mean AP = 0.6880
+~~~~~~~~
+Results:
+0.436
+0.940
+0.688
+~~~~~~~~
+
+AP for 带电芯充电宝 = 0.9511
+AP for 不带电芯充电宝 = 0.9476
+Mean AP = 0.9494
+~~~~~~~~
+Results:
+0.951
+0.948
+0.949
+~~~~~~~~
+
+AP for 带电芯充电宝 = 0.8857
+AP for 不带电芯充电宝 = 0.9438
+Mean AP = 0.9147
+~~~~~~~~
+Results:
+0.886
+0.944
+0.915
+~~~~~~~~
+
+AP for 带电芯充电宝 = 0.8569
+AP for 不带电芯充电宝 = 0.5838
+Mean AP = 0.7203
+~~~~~~~~
+Results:
+0.857
+0.584
+0.720
+~~~~~~~~
+
+AP for 带电芯充电宝 = 0.8554
+AP for 不带电芯充电宝 = 0.9067
+Mean AP = 0.8810
+~~~~~~~~
+Results:
+0.855
+0.907
+0.881
+~~~~~~~~
+
+
+
 """

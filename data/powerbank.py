@@ -167,7 +167,7 @@ class PBDetection(data.Dataset):
                 eg: ('001718', [('dog', (96, 13, 438, 332))])
         '''
         img_id = self.ids[index]
-        target=img_id.split('.')[0].replace('Image','Annotation')+'.txt'
+        target=img_id.split('.')[0].replace(self.image_path,self.anno_path)+'.txt'
         # anno = etree.parse(osp.join(self.rootpath, 'Annotations' ,img_id[:-4]) + '.xml').getroot()
         gt = self.target_transform(target, 1, 1,self.test)
         return img_id, gt
