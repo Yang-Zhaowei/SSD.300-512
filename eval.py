@@ -167,15 +167,13 @@ def do_python_eval(output_dir, set_type, use_07=False):
     if not os.path.isdir(cachedir):
         os.mkdir(cachedir)
     aps = []
-    # TODO The PASCAL VOC metric changed in 2010 ?
-    use_07_metric = use_07
 
     for i, cls in enumerate(labelmap):
         filename = get_voc_results_file_template(output_dir, set_type, cls)
         rec, prec, ap = voc_eval(
             filename, annopath, imgspath, imgsetpath.format(
                 set_type), cls, cachedir,
-            ovthresh=args.over_thresh, use_07_metric=use_07_metric)
+            ovthresh=args.over_thresh, use_07_metric=use_07)
         aps += [ap]
         print('AP for {} = {:.4f}'.format(cls, ap))
 
@@ -202,14 +200,14 @@ def voc_ap(rec, prec, use_07_metric=False):
     """
     if use_07_metric:
         # 11 point metric
-        # ap = 0.
-        # for t in np.arange(0., 1.1, 0.1):
-        #     if np.sum(rec >= t) == 0:
-        #         p = 0
-        #     else:
-        #         p = np.max(prec[rec >= t])
-        #     ap = ap + p / 11.
-        print('ERROR!!!')
+        ap = 0.
+        for t in np.arange(0., 1.1, 0.1):
+            if np.sum(rec >= t) == 0:
+                p = 0
+            else:
+                p = np.max(prec[rec >= t])
+            ap = ap + p / 11.
+        print('ERROR!')
     else:
         # correct AP calculation
         # first append sentinel values at the end
@@ -267,7 +265,6 @@ cachedir: Directory for caching the annotations
         lines = f.readlines()
     imagenames = [x.strip() for x in lines]
     # save the truth data as pickle,if the pickle in the file, just load it.
-    # annopath=PB_ROOT
     if not os.path.isfile(cachefile):
         #load annots
         recs = {}
@@ -449,13 +446,10 @@ if __name__ == '__main__':
     print('Finished loading model : {}!'.format(
         args.trained_model.split('/')[-1]))
     # load data
-    # dataset = PBDetection(test=True,args.voc_root, ['coreless_5000', 'core_500'],
-    #                        BaseTransform(300, voc['mean'],voc['std']))
     dataset = PBDetection(image_path=args.image_path, anno_path=args.anno_path,
                           transform=BaseTransform(cfg['min_dim'], cfg['mean'], cfg['std']))
     if args.cuda:
         net = net.cuda()
-        #torch.backends.cudnn.benchmark = True
     net.eval()
 
     # evaluation

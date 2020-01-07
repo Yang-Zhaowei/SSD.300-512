@@ -34,7 +34,6 @@ parser.add_argument('--image_path', default='/home/yangzw/workspace/data/PB2/Ima
                     type=str, help='Path of images')
 parser.add_argument('--anno_path', default='/home/yangzw/workspace/data/PB2/Annotation',
                     type=str, help='Path of annotation files')
-# train_set = parser.add_mutually_exclusive_group()
 parser.add_argument('--dataset', default='PB',
                     type=str, help='Dataset, only powerbank')
 parser.add_argument('--min_dim', default=512, type=int,
@@ -89,8 +88,8 @@ def train():
     get the dataset and dataloader
     '''
     if args.dataset == 'PB':
-        #     if not os.path.exists(PB_ROOT):
-        #         parser.error('Must specify dataset_root if specifying dataset')
+        if not (os.path.exists(args.image_path) or os.path.exists(args.anno_path)):
+            parser.error('Must specify dataset_root if specifying dataset')
 
         if args.min_dim == 512:
             cfg = pb512
@@ -133,9 +132,9 @@ def train():
     step_index = 0
     loc_loss = 0
     conf_loss = 0
-    save_folder = args.work_dir+cfg['work_name']
+    save_folder = os.path.join(args.work_dir,cfg['work_name'])
     if not os.path.exists(save_folder):
-        os.mkdir(save_folder)
+        os.makedirs(save_folder)
     Lossc, Lossl, Loss = [], [], []
     for epoch in range(args.max_epoch):
         print('\nEpoch : {:0>3d}'.format(epoch+1))
@@ -174,9 +173,8 @@ def train():
 
         Lossc.append(loc_loss)
         Lossl.append(conf_loss)
-        if epoch % 10 == 0 and epoch > 60:  # epoch>1000 and epoch % 50 == 0:
+        if epoch % 10 == 0 and epoch > 60: 
             print('Saving state, iter:', iteration)
-            #print('loss_l:'+weight * loss_l+', loss_c:'+'loss_c')
 
             torch.save(net.state_dict(), save_folder+'/ssd' +
                        repr(epoch)+'.pth')
