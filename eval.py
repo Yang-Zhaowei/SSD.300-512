@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from data import *
 from data import PB_CLASSES as labelmap
-from config import pb
+from config import pb300, pb512
 from model_ssd import build_ssd
 
 sys.path.append(os.getcwd())
@@ -30,12 +30,14 @@ def str2bool(v):
 
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Evaluation')
-parser.add_argument('--testset_filename', default='/home/yangzw/test2/sub_test_core_coreless.txt',
+parser.add_argument('--testset_filename', default='sub_test_core_coreless.txt',
                     type=str, help='image names in test set(.txt file)')  # 测试图片名的txt文档
 parser.add_argument('--image_path', default='/home/yangzw/test2/Image_test/',
                     type=str, help='Path of images')  # 图片文件夹
 parser.add_argument('--anno_path', default='/home/yangzw/test2/Anno_test/',
                     type=str, help='Path of annotation files')  # 标注文件夹
+parser.add_argument('--min_dim', default=512, type=int,
+                    help='Min dim of Input')
 parser.add_argument('--trained_model',
                     default='weights/ssd795.pth', type=str,
                     help='Trained state_dict file path to open')
@@ -303,7 +305,8 @@ cachedir: Directory for caching the annotations
     detfile = detpath.format(classname)
     with open(detfile, 'r') as f:
         lines = f.readlines()
-    num=open('eval{}.txt'.format(args.trained_model.split('/')[-1].rsplit('.',1)[0]),'a+')
+    num = open('eval{}.txt'.format(
+        args.trained_model.split('/')[-1].rsplit('.', 1)[0]), 'a+')
     if any(lines) == 1:
 
         splitlines = [x.strip().split(' ') for x in lines]
@@ -354,13 +357,13 @@ cachedir: Directory for caching the annotations
                         fp[d] = 1.
             else:
                 fp[d] = 1.
-    
-        for i in class_recs.keys():
-            for j,flag in enumerate(class_recs[i]['det']):
-                if flag==False:
-                    num.write("{} {} {}\n".format(i,class_recs[i]['bbox'][j],classname))
 
-        
+        for i in class_recs.keys():
+            for j, flag in enumerate(class_recs[i]['det']):
+                if flag == False:
+                    num.write("{} {} {}\n".format(
+                        i, class_recs[i]['bbox'][j], classname))
+
         # compute precision recall
         fp = np.cumsum(fp)
         tp = np.cumsum(tp)
@@ -369,7 +372,8 @@ cachedir: Directory for caching the annotations
         # ground truth
         prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
         ap = voc_ap(rec, prec, use_07_metric)
-        num.write("rec:{:.5f}\tprec:{:.5f}\t tp:{}\t fp:{} \t npos:{}\n".format(rec[-1],prec[-1],tp[-1],fp[-1],npos))
+        num.write("rec:{:.5f}\tprec:{:.5f}\t tp:{}\t fp:{} \t npos:{}\n".format(
+            rec[-1], prec[-1], tp[-1], fp[-1], npos))
         num.close()
     else:
         rec = -1.
@@ -420,7 +424,7 @@ def test_net(save_folder, net, cuda, dataset, top_k, im_size=300, thresh=0.05):
 def evaluate_detections(data_dir, box_list, dataset, eval_type='test'):
     #write the det result to dir
     write_voc_results_file(data_dir, box_list, dataset, eval_type)
-    return do_python_eval(data_dir, eval_type,use_07=False)
+    return do_python_eval(data_dir, eval_type, use_07=False)
 
 
 if __name__ == '__main__':
@@ -434,7 +438,12 @@ if __name__ == '__main__':
     else:
         torch.set_default_tensor_type('torch.FloatTensor')
     num_classes = len(labelmap) + 1                      # +1 for background
-    net = build_ssd('test', size=300, cfg=pb)            # initialize SSD
+    if args.min_dim == 512:
+        cfg = pb512
+    else:
+        cfg = pb300
+    net = build_ssd('test', size=cfg['min_dim'],
+                    cfg=cfg)            # initialize SSD
     net.load_state_dict(torch.load(args.trained_model))
 
     print('Finished loading model : {}!'.format(
@@ -443,7 +452,7 @@ if __name__ == '__main__':
     # dataset = PBDetection(test=True,args.voc_root, ['coreless_5000', 'core_500'],
     #                        BaseTransform(300, voc['mean'],voc['std']))
     dataset = PBDetection(image_path=args.image_path, anno_path=args.anno_path,
-                          transform=BaseTransform(300, pb['mean'], pb['std']))
+                          transform=BaseTransform(cfg['min_dim'], cfg['mean'], cfg['std']))
     if args.cuda:
         net = net.cuda()
         #torch.backends.cudnn.benchmark = True
@@ -454,7 +463,7 @@ if __name__ == '__main__':
     if not os.path.exists(cache_dir):
         os.mkdir(cache_dir)
 
-    all_boxes = test_net(args.save_folder, net, args.cuda, dataset, args.top_k, 300,
+    all_boxes = test_net(args.save_folder, net, args.cuda, dataset, args.top_k, cfg['min_dim'],
                          thresh=args.confidence_threshold)
 
     print('Evaluating detections')

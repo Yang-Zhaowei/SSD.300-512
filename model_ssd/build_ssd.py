@@ -5,10 +5,11 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 
-from utils import PriorBox,Detect
+from utils import PriorBox, Detect
 from .basenet import Basenet
 from .neck import Neck
 from .head import Head
+
 
 class SSD(nn.Module):
     """Single Shot Multibox Architecture
@@ -41,7 +42,8 @@ class SSD(nn.Module):
         self.head = Head
         self.num_classes = cfg['num_classes']
         self.softmax = nn.Softmax(dim=-1)
-        self.detect = Detect(self.num_classes , 0, 200, 0.01, 0.45,variance = cfg['variance'], nms_kind=cfg['nms_kind'], beta1=cfg['beta1'])
+        self.detect = Detect(self.num_classes, 0, 200, 0.01, 0.45,
+                             variance=cfg['variance'], nms_kind=cfg['nms_kind'], beta1=cfg['beta1'])
 
     def forward(self, x, phase):
         """Applies network layers and ops on input image(s) x.
@@ -62,12 +64,12 @@ class SSD(nn.Module):
                     2: localization layers, Shape: [batch,num_priors*4]
                     3: priorbox layers, Shape: [2,num_priors*4]
         """
-        
+
         x = self.basenet(x)
         if self.neck is not None:
             x = self.neck(x)
 
-        conf,loc = self.head(x)
+        conf, loc = self.head(x)
 
         loc = torch.cat([o.view(o.size(0), -1) for o in loc], 1)
         conf = torch.cat([o.view(o.size(0), -1) for o in conf], 1)
@@ -75,7 +77,7 @@ class SSD(nn.Module):
             output = self.detect.trans(
                 loc.view(loc.size(0), -1, 4),                   # loc preds
                 self.softmax(conf.view(conf.size(0), -1,
-                             self.num_classes)),                # conf preds
+                                       self.num_classes)),                # conf preds
                 #self.priors.type(type(x.data))                  # default boxes
                 self.priors
             )
@@ -92,7 +94,7 @@ class SSD(nn.Module):
         if ext == '.pkl' or '.pth':
             print('Loading weights into state dict...')
             self.load_state_dict(torch.load(base_file,
-                                 map_location=lambda storage, loc: storage))
+                                            map_location=lambda storage, loc: storage))
             print('Finished!')
         else:
             print('Sorry only .pth and .pkl files supported.')
@@ -102,14 +104,15 @@ def build_ssd(phase, size=300, cfg=None):
     if phase != "test" and phase != "train":
         print("ERROR: Phase: " + phase + " not recognized")
         return
-    if size != 300 and size!=600 and size!=800:
+    if size != 300 and size != 600 and size != 800 and size != 512:
         print("ERROR: You specified size " + repr(size) + ". However, " +
-              "currently only SSD300 (size=300) is supported!")
+              "currently only SSD300 or SSD512 (size=300/512) is supported!")
         return
     # print(phase)
-    base = Basenet(cfg['model'],[6,7,8,9,10,11])
-    
-    neck = Neck(in_channels = cfg['basenet_out'], out_channels = cfg['neck_out'])
-    head = Head(num_classes = cfg['num_classes'],in_channels = cfg['neck_out'],aspect_ratios = cfg['aspect_ratios'])
-    
+    base = Basenet(cfg['model'], cfg['basenet_lay'])
+
+    neck = Neck(in_channels=cfg['basenet_out'], out_channels=cfg['neck_out'])
+    head = Head(num_classes=cfg['num_classes'],
+                in_channels=cfg['neck_out'], aspect_ratios=cfg['aspect_ratios'])
+
     return SSD(phase, size, base, neck, head, cfg)

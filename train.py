@@ -12,7 +12,7 @@ import torch.optim as optim
 import torch.nn as nn
 import torch
 
-from config import pb
+from config import pb300, pb512
 from utils import MultiBoxLoss
 from data import *
 from model_ssd import build_ssd
@@ -29,17 +29,21 @@ from eval import test_net
 '''
 
 parser = argparse.ArgumentParser(
-    description='Single Shot MultiBox Detector Training With Pytorch')
-parser.add_argument('--image_path',default=None,type=str)
-parser.add_argument('--anno_path',default=None,type=str)
+    description='Single Shot MultiBox Detector(SSD) Training With Pytorch')
+parser.add_argument('--image_path', default='/home/yangzw/workspace/data/PB2/Image',
+                    type=str, help='Path of images')
+parser.add_argument('--anno_path', default='/home/yangzw/workspace/data/PB2/Annotation',
+                    type=str, help='Path of annotation files')
 # train_set = parser.add_mutually_exclusive_group()
 parser.add_argument('--dataset', default='PB',
                     type=str, help='Dataset, only powerbank')
-parser.add_argument('--batch_size', default=36, type=int,
+parser.add_argument('--min_dim', default=512, type=int,
+                    help='Min dim of Input')
+parser.add_argument('--batch_size', default=16, type=int,
                     help='Batch size for training')
-parser.add_argument('--max_epoch', default=300, type=int,
+parser.add_argument('--max_epoch', default=120, type=int,
                     help='Max Epoch for training')
-parser.add_argument('--resume', default="work_dir/ssd495.pth", type=str,
+parser.add_argument('--resume', default=None, type=str,
                     help='Checkpoint state_dict file to resume training from')
 parser.add_argument('--start_iter', default=0, type=int,
                     help='Resume training at this iter')
@@ -48,7 +52,7 @@ parser.add_argument('--num_workers', default=4, type=int,
 parser.add_argument('--cuda', default=True, type=str2bool,
                     help='Use CUDA to train model')
 parser.add_argument('--loss_weights', default=[1, 5, 1],
-                     help='Weight of classes in loss function')
+                    help='Weight of classes in loss function')
 parser.add_argument('--lr', '--learning-rate', default=8e-4, type=float,
                     help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float,
@@ -59,7 +63,7 @@ parser.add_argument('--gamma', default=0.1, type=float,
                     help='Gamma update for SGD')
 parser.add_argument('--work_dir', default='work_dir/',
                     help='Directory for saving checkpoint models')
-        
+
 parser.add_argument('--weight', default=5, type=int)
 
 args = parser.parse_args()
@@ -85,13 +89,15 @@ def train():
     get the dataset and dataloader
     '''
     if args.dataset == 'PB':
-        if not os.path.exists(PB_ROOT):
-            parser.error('Must specify dataset_root if specifying dataset')
+        #     if not os.path.exists(PB_ROOT):
+        #         parser.error('Must specify dataset_root if specifying dataset')
 
-        cfg = pb
-        dataset = PBDetection(image_path=args.image_path,anno_path=args.anno_path,
-                              transform=SSDAugmentation(cfg['min_dim'],
-                                                        mean=cfg['mean'], std=cfg['std']))
+        if args.min_dim == 512:
+            cfg = pb512
+        else:
+            cfg = pb300
+        dataset = PBDetection(image_path=args.image_path, anno_path=args.anno_path,
+                              transform=SSDAugmentation(cfg['min_dim'], mean=cfg['mean'], std=cfg['std']))
 
     data_loader = data.DataLoader(dataset, args.batch_size,
                                   num_workers=args.num_workers,
@@ -121,7 +127,8 @@ def train():
                              encode_target=False, weight=args.loss_weights, use_gpu=args.cuda, loss_name=cfg['losstype'])
 
     epoch_size = len(dataset) // args.batch_size
-    print('Training SSD on:', dataset.name, epoch_size)
+    print('Training SSD {} on: {} ,Epoch size:{}'.format(
+        args.min_dim, dataset.name, epoch_size))
     iteration = args.start_iter
     step_index = 0
     loc_loss = 0
@@ -129,7 +136,7 @@ def train():
     save_folder = args.work_dir+cfg['work_name']
     if not os.path.exists(save_folder):
         os.mkdir(save_folder)
-    Lossc,Lossl,Loss=[],[],[]
+    Lossc, Lossl, Loss = [], [], []
     for epoch in range(args.max_epoch):
         print('\nEpoch : {:0>3d}'.format(epoch+1))
         for ii, batch_iterator in tqdm(enumerate(data_loader)):
@@ -161,9 +168,10 @@ def train():
             #print(iteration)
             if iteration % 10 == 0:
                 print('timer: {:.4f} sec.' .format(t1 - t0))
-                print('iter {} Loss: {:.4f} '.format(repr(iteration),loss.item()), end=' ')
+                print('iter {} Loss: {:.4f} '.format(
+                    repr(iteration), loss.item()), end=' ')
                 Loss.append(loss.item())
-        
+
         Lossc.append(loc_loss)
         Lossl.append(conf_loss)
         if epoch % 10 == 0 and epoch > 60:  # epoch>1000 and epoch % 50 == 0:
@@ -177,12 +185,12 @@ def train():
         conf_loss = 0
     torch.save(net.state_dict(), save_folder+'/ssd' +
                repr(epoch) + str(args.weight) + '.pth')
-    with open(save_folder+'/lossc.json','w+',encoding='utf-8') as obj:
-        json.dump(Lossc,obj,ensure_ascii=False)
-    with open(save_folder+'/lossl.json','w+',encoding='utf-8') as obj:
-        json.dump(Lossl,obj,ensure_ascii=False)
-    with open(save_folder+'/loss.json','w+',encoding='utf-8') as obj:
-        json.dump(Loss,obj,ensure_ascii=False)
+    with open(save_folder+'/lossc.json', 'w+', encoding='utf-8') as obj:
+        json.dump(Lossc, obj, ensure_ascii=False)
+    with open(save_folder+'/lossl.json', 'w+', encoding='utf-8') as obj:
+        json.dump(Lossl, obj, ensure_ascii=False)
+    with open(save_folder+'/loss.json', 'w+', encoding='utf-8') as obj:
+        json.dump(Loss, obj, ensure_ascii=False)
 
 
 def adjust_learning_rate(optimizer, gamma, step):
