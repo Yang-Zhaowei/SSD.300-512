@@ -39,7 +39,7 @@ parser.add_argument('--anno_path', default='../data/test/Anno_test/',
 parser.add_argument('--min_dim', default=512, type=int,
                     help='Min dim of Input')
 parser.add_argument('--trained_model',
-                    default='weights/ssd795.pth', type=str,
+                    default='ssd190.pth', type=str,
                     help='Trained state_dict file path to open')
 parser.add_argument('--save_folder', default='eval/', type=str,
                     help='File path to save results')
