@@ -1,14 +1,12 @@
 # from .config import HOME
 import os
 import os.path as osp
-import sys
 import torch
 import torch.utils.data as data
 from cv2 import cv2
 import numpy as np
 
 PB_CLASSES = ['带电芯充电宝', '不带电芯充电宝']  # always index 2
-PB_ROOT = ""
 
 
 class PBAnnotationTransform(object):
@@ -35,11 +33,6 @@ class PBAnnotationTransform(object):
         """
         res = []
         for line in open(target, encoding='utf-8'):
-            # difficult = int(obj.find('difficult').text) == 1
-            #if not self.keep_difficult and difficult:
-                #continue
-            # name = obj.find('name').text.lower().strip()
-            # pts = ['xmin', 'ymin', 'xmax', 'ymax']
             line = line.split()
             # print(line)
             if 'TIFF' in line[0]:
@@ -51,7 +44,6 @@ class PBAnnotationTransform(object):
                 cur_pt = pt/width if i % 2 == 0 else pt / height
                 bndbox.append(cur_pt)
             if self.class_to_ind.get(name, -1) == -1:
-                # label_idx=self.class_to_ind['other']
                 continue
             else:
                 label_idx = self.class_to_ind[name]
@@ -59,7 +51,6 @@ class PBAnnotationTransform(object):
             bndbox.append(label_idx)
             if label_idx <= 1:
                 res += [bndbox]  # [xmin, ymin, xmax, ymax, label_ind]
-            # img_id = target.find('filename').text[:-4]
 
         return res  # [[xmin, ymin, xmax, ymax, label_ind], ... ]
 
@@ -81,16 +72,13 @@ class PBDetection(data.Dataset):
             (default: 'VOC2007')
     """
 
-    def __init__(self, image_path='data/Powerbank',  # image_sest=['coreless_5000', 'core_500'],
+    def __init__(self, image_path='data/Powerbank',
                  anno_path='data/Annotation', test=False, ratio=0.7,
                  transform=None, target_transform=PBAnnotationTransform(),):
         self.name = 'PowerBank'
-        # self.image_set = image_sets
         self.transform = transform
         self.target_transform = target_transform
         self.test = test
-        # self.ids = list()
-        # self.annos=list()
         self.image_path = image_path
         self.anno_path = anno_path
         self.ids = [osp.join(image_path, img)
@@ -107,21 +95,6 @@ class PBDetection(data.Dataset):
                 for i in self.ids:
                     line = i.rsplit('/', 1)[-1].rsplit('.', 1)[0]
                     obj.write(line+'\n')
-        # for name in image_sets:
-        #     self.rootpath = osp.join(self.root,name)
-        #     ipath=osp.join(self.rootpath,'Image')
-        #     imgs=[img for img in os.listdir(ipath)]
-
-        #     num=len(imgs)
-        #     if self.test:
-        #         self.ids.extend(osp.join(ipath,img) for img in imgs[int(num*ratio):])
-
-        #     else:
-        #         self.ids.extend(osp.join(ipath,img) for img in imgs[:int(num*ratio)])
-
-        # with open("sub_test_core_coreless.txt2",'w+',encoding='utf-8') as obj:
-        #     for kkk in self.ids:
-        #         obj.write("{}\n".format(kkk.split('/')[-1].split('.')[0]))
 
     def __getitem__(self, index):
         im, gt, h, w = self.pull_item(index)
@@ -132,16 +105,9 @@ class PBDetection(data.Dataset):
 
     def pull_item(self, index):
         img_id = self.ids[index]
-        target = img_id.split('.')[0].replace(
+        target = img_id.rsplit('.',1)[0].replace(
             self.image_path, self.anno_path)+'.txt'
         img = cv2.imread(img_id)
-        # target = etree.parse(annopath).getroot()
-        # target=[]
-        # for line in open(annopath,encoding='utf-8'):
-        #     line=line.split()
-        #     if 'TIFF' in line[0]:
-        #         line=line[1:]
-        #     target.append(line)
         height, width, channels = img.shape
         if self.target_transform is not None:
             target = self.target_transform(target, width, height, self.test)
@@ -183,9 +149,8 @@ class PBDetection(data.Dataset):
                 eg: ('001718', [('dog', (96, 13, 438, 332))])
         '''
         img_id = self.ids[index]
-        target = img_id.split('.')[0].replace(
+        target = img_id.rsplit('.',1)[0].replace(
             self.image_path, self.anno_path)+'.txt'
-        # anno = etree.parse(osp.join(self.rootpath, 'Annotations' ,img_id[:-4]) + '.xml').getroot()
         gt = self.target_transform(target, 1, 1, self.test)
         return img_id, gt
 
@@ -202,11 +167,6 @@ class PBDetection(data.Dataset):
         '''
         return torch.Tensor(self.pull_image(index)).unsqueeze_(0)
 
-
-# with open("/home/yangzw/Pytorch/VOC/sub_test_core_coreless.txt",'w+',encoding='utf-8') as obj:
-#     dataset=PBDetection(test=True)
-#     print(1)
-        # obj.write(i)
 def detection_collate(batch):
     """Custom collate fn for dealing with batches of images that have a different
     number of associated object annotations (bounding boxes).
@@ -229,6 +189,6 @@ def detection_collate(batch):
 
 
 if __name__ == '__main__':
-    datas = PBDetection(image_path='/home/yangzw/Pytorch/data/coreless_3000/Image/',
-                        anno_path='/home/yangzw/Pytorch/data/coreless_3000/Annotation/')
+    datas = PBDetection(image_path='../../Pytorch/data/coreless_3000/Image/',
+                        anno_path='../../Pytorch/data/coreless_3000/Annotation/')
     print(len(datas))

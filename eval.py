@@ -32,16 +32,16 @@ parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector Evaluation')
 parser.add_argument('--testset_filename', default='sub_test_core_coreless.txt',
                     type=str, help='image names in test set(.txt file)')  # 测试图片名的txt文档
-parser.add_argument('--image_path', default='/home/yangzw/test2/Image_test/',
+parser.add_argument('--image_path', default='../data/test/Image_test/',
                     type=str, help='Path of images')  # 图片文件夹
-parser.add_argument('--anno_path', default='/home/yangzw/test2/Anno_test/',
+parser.add_argument('--anno_path', default='../data/test/Anno_test/',
                     type=str, help='Path of annotation files')  # 标注文件夹
 parser.add_argument('--min_dim', default=512, type=int,
                     help='Min dim of Input')
 parser.add_argument('--trained_model',
                     default='weights/ssd795.pth', type=str,
                     help='Trained state_dict file path to open')
-parser.add_argument('--save_folder', default='eval6111/', type=str,
+parser.add_argument('--save_folder', default='eval/', type=str,
                     help='File path to save results')
 parser.add_argument('--confidence_threshold', default=0.01, type=float,
                     help='Detection confidence threshold')
@@ -463,69 +463,3 @@ if __name__ == '__main__':
     print('Evaluating detections')
     result = evaluate_detections(cache_dir, all_boxes, dataset, 'test')
 
-"""
-151
-ssd994:
-AP for 带电芯充电宝 = 0.7238
-AP for 不带电芯充电宝 = 0.8922
-Mean AP = 0.8080
-~~~~~~~~
-Results:
-0.724
-0.892
-0.808
-~~~~~~~~
-
-AP for 带电芯充电宝 = 0.4360
-AP for 不带电芯充电宝 = 0.9401
-Mean AP = 0.6880
-~~~~~~~~
-Results:
-0.436
-0.940
-0.688
-~~~~~~~~
-
-AP for 带电芯充电宝 = 0.9511
-AP for 不带电芯充电宝 = 0.9476
-Mean AP = 0.9494
-~~~~~~~~
-Results:
-0.951
-0.948
-0.949
-~~~~~~~~
-
-AP for 带电芯充电宝 = 0.8857
-AP for 不带电芯充电宝 = 0.9438
-Mean AP = 0.9147
-~~~~~~~~
-Results:
-0.886
-0.944
-0.915
-~~~~~~~~
-
-AP for 带电芯充电宝 = 0.8569
-AP for 不带电芯充电宝 = 0.5838
-Mean AP = 0.7203
-~~~~~~~~
-Results:
-0.857
-0.584
-0.720
-~~~~~~~~
-
-AP for 带电芯充电宝 = 0.8554
-AP for 不带电芯充电宝 = 0.9067
-Mean AP = 0.8810
-~~~~~~~~
-Results:
-0.855
-0.907
-0.881
-~~~~~~~~
-
-
-
-"""
