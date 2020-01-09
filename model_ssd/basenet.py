@@ -17,8 +17,6 @@ class Basenet(nn.Module):
         model = models.resnet50(pretrained=pretrained)
         #get the model lay,it's a list
         lay = nn.Sequential(*list(model.children())[:-2])
-        # if model_name == 'resnet50':
-        #     out_channels = 2048
         return lay  # ,out_channels
 
     def add_extras(self, lay, length=6):
@@ -64,7 +62,6 @@ class Basenet(nn.Module):
 
         for i in range(self.model_length):
             x = self.model[i](x)
-            # print(x.shape)
 
             if i+1 in self.feature_map:
 

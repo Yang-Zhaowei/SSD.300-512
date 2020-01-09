@@ -39,7 +39,7 @@ parser.add_argument('--anno_path', default='../data/test/Anno_test/',
 parser.add_argument('--min_dim', default=512, type=int,
                     help='Min dim of Input')
 parser.add_argument('--trained_model',
-                    default='ssd190.pth', type=str,
+                    default=None, type=str,
                     help='Trained state_dict file path to open')
 parser.add_argument('--save_folder', default='eval/', type=str,
                     help='File path to save results')
@@ -303,7 +303,7 @@ cachedir: Directory for caching the annotations
     with open(detfile, 'r') as f:
         lines = f.readlines()
     num = open('eval{}.txt'.format(
-        args.trained_model.split('/')[-1].rsplit('.', 1)[0]), 'a+')
+        args.trained_model.split('/')[-1].rsplit('.', 1)[0]), 'a+',encoding='utf-8')
     if any(lines) == 1:
 
         splitlines = [x.strip().split(' ') for x in lines]

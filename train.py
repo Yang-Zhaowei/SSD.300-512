@@ -6,10 +6,7 @@ import json
 
 from tqdm import tqdm
 import torch.utils.data as data
-import torch.nn.init as init
-import torch.backends.cudnn as cudnn
 import torch.optim as optim
-import torch.nn as nn
 import torch
 
 from config import pb300, pb512
@@ -30,9 +27,9 @@ from eval import test_net
 
 parser = argparse.ArgumentParser(
     description='Single Shot MultiBox Detector(SSD) Training With Pytorch')
-parser.add_argument('--image_path', default='/home/yangzw/workspace/data/PB2/Image',
+parser.add_argument('--image_path', default='../workspace/data/PB2/Image',
                     type=str, help='Path of images')
-parser.add_argument('--anno_path', default='/home/yangzw/workspace/data/PB2/Annotation',
+parser.add_argument('--anno_path', default='../workspace/data/PB2/Annotation',
                     type=str, help='Path of annotation files')
 parser.add_argument('--dataset', default='PB',
                     type=str, help='Dataset, only powerbank')
