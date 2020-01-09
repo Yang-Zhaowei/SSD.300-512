@@ -135,7 +135,7 @@ def train():
     Lossc, Lossl, Loss = [], [], []
     for epoch in range(args.max_epoch):
         print('\nEpoch : {:0>3d}'.format(epoch+1))
-        for ii, batch_iterator in tqdm(enumerate(data_loader)):
+        for _, batch_iterator in tqdm(enumerate(data_loader)):
             iteration += 1
 
             if iteration in cfg['lr_steps']:
@@ -149,7 +149,6 @@ def train():
                 images = images.cuda()
                 targets = [ann.cuda() for ann in targets]
             else:
-                images = images
                 targets = [ann for ann in targets]
             t0 = time.time()
             out = net(images, 'train')
