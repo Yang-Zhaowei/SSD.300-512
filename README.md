@@ -14,7 +14,7 @@ Loss: Iou & Cross Entrop
 |coreless|0.9355|**0.9361**|0.9240|0.9212|0.8965|0.8955|
 |map     |0.8753|**0.8934**|0.8768|0.8056|0.8078|0.8037|
 
-The trained model weight file : [```ssd190.pth```](https://bhpan.buaa.edu.cn:443/link/197D4B378811CCFD33F2BA951E75B768)
+The trained model weight file : [```ssd190.pth```](https://bhpan.buaa.edu.cn:443/link/BCD97826BFDF5B9193072E3875903319) ; *Valid Until: 2020-02-07 23:59.*
 
 The project report: [作业报告.pdf](https://github.com/Yang-Zhaowei/SSD.300-512/blob/master/%E4%BD%9C%E4%B8%9A%E6%8A%A5%E5%91%8A.pdf)
 
